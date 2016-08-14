@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>LA COUNTY SFR and MFR Zoned Land Uses</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+	<link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
+    <script src="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+    <script src="js/leaflet-hash.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+	<div id="map"></div>
+    <div id="info"><div id="main"><h2>LA County Exploration 2 | Housing for you, Housing for us</h2></div>
+    <div id="infobox"><h2>Click to identify the city</h2>
+        </div>
+        <h2 id="sfr">Single Family</h2>
+        <h2 id="mfr">Multifamily</h2>
+        <p>This exploration takes a look at data from the Southern California Association of Governments <a href="https://www.scag.ca.gov/Pages/default.aspx">(SCAG)</a>. Made in 2009 this <a href="http://egis3.lacounty.gov/dataportal/2012/04/10/countywide-zoning/">dataset</a> provides a countywide zoning and general plan information of the cities and unincorporated areas.</p><p>This map shows all the generalized land use areas which are Single Family Residential and Multifamily Residential. Hovering over the map will identify the city or county area.</p>
+        <p>Made by <a href="https://twitter.com/theworksla">Omar Ureta</a></p>
+    </div>
+	<script>
+		var map = L.map('map').setView([34.0267, -118.2621], 9);
+        var southWest = new L.LatLng(33.66807, -118.80581);
+        var northEast = new L.LatLng(34.77659, -117.65293);
+        var bounds = new L.LatLngBounds(southWest, northEast);
+        var prevlayer;
+
+		L.tileLayer('tiles/lacounty_sfr_mfr_zoning/{z}/{x}/{y}.png', {
+			maxZoom: 13,
+            minZoom: 7,
+			attribution: 'Map data <a href="http://egis3.lacounty.gov/dataportal/2012/04/10/countywide-zoning/">LA County GIS Portal</a>, ',
+            bounds: bounds
+		}).addTo(map);
+
+        
+        L.tileLayer('http://c.tile.stamen.com/terrain/{z}/{x}/{y}.png', {opacity:.2,
+            maxZoom: 13,
+            minZoom: 7,
+			attribution: '<a href="http://maps.stamen.com/">Map tiles</a> by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.',
+		}).addTo(map);
+        
+        
+        var cityboundaries="js/cities_simple.json";
+        
+        var style= {
+                    fillColor:"#000",
+                    color: "#000",
+                    weight: 1,
+                    opacity: .5,
+                    fillOpacity: 0.1
+            };
+        
+        var resetstyle= {
+            weight: 3,
+            color: '#666',
+            dashArray: '',
+            fillOpacity: 0
+        }
+
+       $.getJSON(cityboundaries, function(data) {
+            var cityLayer = L.geoJson(data, {
+                style:style,
+                onEachFeature:onEachFeature
+            }).addTo(map);
+        });
+        
+    var hash = new L.Hash(map);
+    function highlightFeature(e) {
+        var layer = e.target;
+        layer.setStyle(resetstyle);
+
+        if (!L.Browser.ie && !L.Browser.opera) {
+            layer.bringToFront();
+        }
+    }
+        
+    function resetHighlight(e) {
+        var layer = e.target;
+        layer.setStyle(style);
+    }
+               
+    function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+    });
+    layer.on('mouseover',function(e) {
+    document.getElementById('infobox').innerHTML = "<h2>This area is in: "+feature.properties.CITY_NAME+"</h2>";    
+    });
+    layer.on('click',function(e) {    
+    document.getElementById('infobox').innerHTML = "<h2>This area is in: "+feature.properties.CITY_NAME+"</h2>";
+    });     
+    }
+    
+	</script>
+</body>
+</html>
